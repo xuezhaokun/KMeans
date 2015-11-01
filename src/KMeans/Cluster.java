@@ -7,12 +7,12 @@ public class Cluster {
 	private List<Point> points;
 	private Point center;
 	
-	public Cluster(List<Point> points, Point center) {
-		this.points = points;
+	public Cluster(Point center) {
+		this.points = new ArrayList<Point>();
 		this.center = center;
 	}
 
-	public Point updateCenter(List<Point> points){
+	public void updateCenter(List<Point> points){
 		List<Double> newCenterData = points.get(0).getData();
 		int totalNumPoints = points.size();
 		points.remove(0);
@@ -28,8 +28,10 @@ public class Cluster {
 			newCenterData.set(j, avg);
 		}
 		Point newCenter = new Point(newCenterData);
-		return newCenter;
+		this.setCenter(newCenter);
 	}
+	
+	
 		
 	public List<Point> getPoints() {
 		return points;

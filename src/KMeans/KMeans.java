@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import weka.core.Instance;
@@ -14,11 +15,13 @@ import weka.core.Instances;
 public class KMeans {
 	private int k;
 	private String filename;
+	//private HashMap<String, List<Cluster>> clusters;
 	private List<Cluster> clusters;
 	
 	public KMeans(int k, String filename) {
 		this.k = k;
 		this.filename = filename;
+		//this.clusters = new HashMap<String, List<Cluster>>();
 		this.clusters = new ArrayList<Cluster>();
 	}
 	
@@ -54,38 +57,43 @@ public class KMeans {
 	}
 
 
-	public static double dist(Point p1, Point p2){
-		List<Double> p1_data = p1.getData();
-		List<Double> p2_data = p2.getData();
-		double distance = 0;
-		if(p1_data.size() == p2_data.size()){
-			for (int i = 0; i < p1_data.size(); i++){
-				double diff = p1_data.get(i) - p2_data.get(i);
-				distance += Math.pow(diff, 2);
-			}
-			distance = Math.sqrt(distance);
-		}
-		return distance;
-	}
-
-	public List<Point> initCenters(List<Point> points, int k){
+	public void initClusters(List<Point> points, int k){
 		Collections.shuffle(points);
 		List<Point> centers = new ArrayList<Point>();
 		for(int i = 0; i < k; i++){
 			centers.add(points.get(i));
 		}
-		return centers;
+		List<Cluster> initClusters = new ArrayList<Cluster>();
+		for(Point center : centers){
+			Cluster cluster = new Cluster(center);
+			initClusters.add(cluster);
+		}
+		this.setClusters(initClusters);
+		//return initClusters;
 	}
 	
-	public List<Cluster> initClusters(List<Point> points, List<Point> centers){
-		double maxDist = Double.MAX_VALUE;
-		double minDist = maxDist;
-		
+	public void assignPointsToClusters(List<Point> points){
+		int numClusters = this.getClusters().size();
 		for(Point point : points){
-			for()
+			double minDist = Double.MAX_VALUE;
+			int cluster = -1;
+			for(int i = 0; i < numClusters; i++){
+				Cluster currentCluster = this.getClusters().get(i);
+				Point currentCenter =currentCluster.getCenter();
+				double tmpDist = Point.dist(point, currentCenter);
+				if(tmpDist < minDist){
+					minDist = tmpDist;
+					cluster = i;
+				}
+			}
+			point.setCluster(cluster);
+			this.getClusters().get(cluster).getPoints().add(point);
 		}
 	}
 	
+	public void updateClusters(List<Point> points){
+		
+	}
 	
 	public int getK() {
 		return k;
@@ -94,6 +102,14 @@ public class KMeans {
 	public void setK(int k) {
 		this.k = k;
 	}
+
+	/*public HashMap<String, List<Cluster>> getClusters() {
+		return clusters;
+	}
+
+	public void setClusters(HashMap<String, List<Cluster>> clusters) {
+		this.clusters = clusters;
+	}*/
 
 	public List<Cluster> getClusters() {
 		return clusters;
