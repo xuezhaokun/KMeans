@@ -162,7 +162,7 @@ public class KMeans {
 		double h_col = 0; //classifier
 		double i_row_col = 0;
 		double nmi = 0;
-		int totalData = 0;
+		double totalData = 0;
 		for (int row = 0; row < k; row++){
 			for (int col=0; col < k; col++){
 				rowSum[row] += contingencyTable[row][col];
@@ -180,18 +180,18 @@ public class KMeans {
 		}
 		
 		for(int i = 0; i < k; i++){
-			h_row += -(rowSum[i]/totalData)*Math.log((rowSum[i]/totalData));
-			h_col += -(colSum[i]/totalData)*Math.log((colSum[i]/totalData));
+			double p_row = rowSum[i]/totalData;
+			double p_col = colSum[i]/totalData;
+			h_row += -p_row*Math.log(p_row);
+			h_col += -p_col*Math.log(p_col);
+			System.out.println("total: "+ totalData +" row: " + rowSum[i] + " col: " +colSum[i] + " h_row: " + h_row + " h_col: " + h_col);
 		}
 		
 		for(int row = 0; row < k; row++){
 			for(int col = 0; col < k; col++){
-				if((contingencyTable[row][col]/totalData) == 0){
-					i_row_col += 0;
-				}else{
-					
-					i_row_col += (contingencyTable[row][col]/totalData)*Math.log((contingencyTable[row][col]/totalData)/(rowSum[row]*colSum[col]/totalData));
-				}
+				double p_cell = contingencyTable[row][col]/totalData;
+				i_row_col += p_cell*Math.log(p_cell/(rowSum[row]*colSum[col]/totalData));
+				
 			}
 
 		}
