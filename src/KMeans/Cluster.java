@@ -31,6 +31,15 @@ public class Cluster {
 		this.setCenter(newCenter);
 	}
 	
+	public double calClusterCS(){
+		Point center = this.getCenter();
+		double clusterCS = 0;
+		for(Point point : this.getPoints()){
+			double tmp = Point.dist(point, center);
+			clusterCS += tmp;
+		}
+		return clusterCS;
+	}
 	
 		
 	public List<Point> getPoints() {

@@ -5,7 +5,7 @@ import java.util.List;
 public class Point {
 	private List<Double> data;
 	private int cluster = -1;
-	
+	private int classifier = -1;
 	public Point(List<Double> data) {
 		this.data = data;
 		//this.cluster = cluster;
@@ -40,6 +40,20 @@ public class Point {
 
 	public void setCluster(int cluster) {
 		this.cluster = cluster;
+	}
+
+		
+	public int getClassifier() {
+		return classifier;
+	}
+
+	public void setClassifier(int classifier) {
+		this.classifier = classifier;
+	}
+
+	@Override
+	public String toString() {
+		return "Point [data=" + data + ", cluster=" + cluster + ", classifier=" + classifier + "]";
 	}
 
 
