@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import weka.core.Instance;
@@ -139,7 +138,7 @@ public class KMeans {
 		    }
 		}
 		
-		/*
+		
 		for (int row=0; row < contingencyTable.length; row++){
 		    for (int col=0; col < contingencyTable[row].length; col++){
 		    	System.out.print(contingencyTable[row][col] + " ");
@@ -147,7 +146,7 @@ public class KMeans {
 		    System.out.println("");
 		}
 		
-		for(int j = 0; j < k; j ++){
+		/*for(int j = 0; j < k; j ++){
 			System.out.println("row: " + rowSum[j]);
 			System.out.println("col: " + colSum[j]);
 		}*/
@@ -190,8 +189,12 @@ public class KMeans {
 		for(int row = 0; row < k; row++){
 			for(int col = 0; col < k; col++){
 				double p_cell = contingencyTable[row][col]/totalData;
-				i_row_col += p_cell*Math.log(p_cell/(rowSum[row]*colSum[col]/totalData));
-				
+				if(p_cell == 0){
+					continue;
+				}else{
+					i_row_col += p_cell*Math.log(p_cell/(rowSum[row]*colSum[col]/(Math.pow(totalData, 2))));
+				}
+				System.out.println(p_cell + " " +i_row_col);
 			}
 
 		}
@@ -225,7 +228,7 @@ public class KMeans {
 	}
 
 	public static void main(String[] args) throws IOException {
-		List<Point> dataPoints = KMeans.readDataFile("data/artdata.arff");
+		List<Point> dataPoints = KMeans.readDataFile("data/iris.arff");
 		KMeans k1 = new KMeans(3);
 		for(int k = 0; k < 10; k++){
 			k1.initClusters(dataPoints);

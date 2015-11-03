@@ -35,7 +35,7 @@ public class Cluster {
 		Point center = this.getCenter();
 		double clusterCS = 0;
 		for(Point point : this.getPoints()){
-			double tmp = Point.dist(point, center);
+			double tmp = Math.pow(Point.dist(point, center), 2);
 			clusterCS += tmp;
 		}
 		return clusterCS;
