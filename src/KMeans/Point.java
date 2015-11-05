@@ -1,17 +1,29 @@
 package KMeans;
 
 import java.util.List;
-
+/**
+ * point class for each data read from dataset
+ * @author Zhaokun Xue
+ *
+ */
 public class Point {
-	private List<Double> data;
-	private int cluster = -1;
-	private int classifier = -1;
+	private List<Double> data; // data value in the point
+	private int cluster = -1; // data cluster from kmeans computation
+	private int classifier = -1; // data class label from dataset
+	/**
+	 * constructor for point
+	 * @param data 
+	 */
 	public Point(List<Double> data) {
 		this.data = data;
-		//this.cluster = cluster;
-		//this.classifier = classifier;
 	}
 
+	/**
+	 * calculate distance between two points
+	 * @param p1
+	 * @param p2
+	 * @return distance
+	 */
 	public static double dist(Point p1, Point p2){
 		List<Double> p1_data = p1.getData();
 		List<Double> p2_data = p2.getData();
@@ -26,6 +38,7 @@ public class Point {
 		return distance;
 	}
 	
+	// getters and setters
 	public List<Double> getData() {
 		return data;
 	}

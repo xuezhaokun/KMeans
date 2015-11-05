@@ -10,16 +10,23 @@ import java.util.List;
 
 import weka.core.Instance;
 import weka.core.Instances;
-
+/**
+ * Implementing k means
+ * @author Zhaokun Xue
+ *
+ */
 public class KMeans {
-	private int k;
-	private List<Cluster> clusters;
-	private boolean isConvergent = false;
-	private int numClasses = 0;
+	private int k; // k value
+	private List<Cluster> clusters; // clusters in kmeans
+	private boolean isConvergent = false; // initialize convergent to false
+	private int numClasses = 0; // number of classes in the dataset
+	/**
+	 * constructor for KMeans class
+	 * @param k // k value
+	 */
 	public KMeans(int k) {
 		this.k = k;
-		//this.clusters = new HashMap<String, List<Cluster>>();
-		this.clusters = new ArrayList<Cluster>();
+		this.clusters = new ArrayList<Cluster>(); // initialize clusters to an empty array
 	}
 	
 	/**
@@ -37,8 +44,7 @@ public class KMeans {
 		}
 		Instances read_data = new Instances(inputReader);
 		int numOfClasses = read_data.numDistinctValues(read_data.numAttributes()-1);
-		this.setNumClasses(numOfClasses);
-		//System.out.println(read_data.numDistinctValues(read_data.numAttributes()-1));
+		this.setNumClasses(numOfClasses);// set the number of classes in current dataset
 		List<Point> list_data = new ArrayList<Point>();
 		for(int i = 0; i < read_data.numInstances(); i ++){
 			List<Double> attributes = new ArrayList<Double>();
@@ -49,14 +55,17 @@ public class KMeans {
 				attributes.add(current_instance.value(j));
 			}
 			Point point_data = new Point(attributes); 
-			point_data.setClassifier(classifier);
+			point_data.setClassifier(classifier);// set classifier in for each point based on the info in dataset
 			list_data.add(point_data);
 		}
 		inputReader.close();
 		return list_data;
 	}
 
-
+	/**
+	 * Initialize clusters, set clusters' centers
+	 * @param points all points in dataset
+	 */
 	public void initClusters(List<Point> points){
 		Collections.shuffle(points); // shuffle the points randomly
 		List<Point> centers = new ArrayList<Point>();
@@ -76,7 +85,10 @@ public class KMeans {
 		this.setClusters(initClusters);
 	}
 	
-
+	/**
+	 * assign all points to corresponding clusters based on the distances to clusters
+	 * @param points all points in dataset
+	 */
 	public void assignPointsToClusters(List<Point> points){
 		int numClusters = this.getClusters().size();
 		// iterate each point in the dataset and assign them to corresponding cluster
@@ -105,18 +117,23 @@ public class KMeans {
 		}
 	}
 	
+	/**
+	 * update clusters, update cluster centers and reassign points
+	 * @param points all points in dataset
+	 */
 	public void updateClusters(List<Point> points){
-		int numClusters = this.getClusters().size();
+		int numClusters = this.getClusters().size();// number of clusters
 		List<Cluster> currentClusters = this.getClusters();
 		// iterate current clusters to update their centers
 		for(int i = 0; i < numClusters; i++){
 			Cluster currentCluster = currentClusters.get(i);// get current cluster
 			List<Point> pointsInCurrentCluster = currentCluster.getPoints(); // get the points in current cluster
+			// if some cluster does not have any point, we regard it as an error and reinitialize clusters
 			if(pointsInCurrentCluster.isEmpty()){
-				this.initClusters(points);
-				this.assignPointsToClusters(points);
-				this.updateClusters(points);
-				break;
+				this.initClusters(points);// reinitialize centers
+				this.assignPointsToClusters(points); // reassign pointers to clusters
+				this.updateClusters(points); // update again
+				break; // break current loop
 			}else{
 				currentCluster.updateCenter(pointsInCurrentCluster); // update center
 				currentCluster.getPoints().clear(); // clear the points in current cluster
@@ -126,6 +143,10 @@ public class KMeans {
 		this.assignPointsToClusters(points); //reassign poins to current clusters based on new centers
 	}
 	
+	/**
+	 * continue update clusters until we reach a convergent status
+	 * @param points
+	 */
 	public void updateToConvergence(List<Point> points){
 		// update clusters until convergent results
 		while(!this.isConvergent()){
@@ -133,7 +154,10 @@ public class KMeans {
 		}
 	}
 	
-
+	/**
+	 * calculate cluster scatter
+	 * @return cluster scatter
+	 */
 	public double calCS(){
 		double cs = 0;
 		// calculate the cluster scatter for each cluster and sum them up
@@ -144,6 +168,11 @@ public class KMeans {
 		return cs;
 	}
 	
+	/**
+	 * set up the contingency table with columns on class labels (classifier) and rows on our clusters   
+	 * @param points all points in dataset
+	 * @return the contingency table
+	 */
 	public int[][] setUpContingencyTable(List<Point> points){
 		int numOfClasses = this.getNumClasses();
 		int k = this.getK();
@@ -164,16 +193,14 @@ public class KMeans {
 		    }
 		}
 		
-		/*for (int row=0; row < contingencyTable.length; row++){
-		    for (int col=0; col < contingencyTable[row].length; col++){
-		    	System.out.print(contingencyTable[row][col] + " ");
-		    }
-		    System.out.println("");
-		}*/
-		
 		return contingencyTable;
 	}
 	
+	/**
+	 * calculate NMI
+	 * @param contingencyTable the contingency table made from above
+	 * @return the NMI 
+	 */
 	public double calNMI(int[][] contingencyTable){
 		int k = this.getK();
 		int numOfClasses = this.getNumClasses();
@@ -203,17 +230,16 @@ public class KMeans {
 			totalData += sum;
 		}
 		
-		// calculate the entropy for row and column
+		// calculate the entropy for row 
 		for(int i = 0; i < k; i++){
 			double p_row = rowSum[i]/totalData; // (sum of each row)/(total N) 
 			h_row += -p_row*Math.log(p_row);
-			//System.out.println("total: "+ totalData +" row: " + rowSum[i]  + " h_row: " + h_row );
 		}
 		
+		// calculate the entropy for column
 		for(int i = 0; i < numOfClasses; i++){
 			double p_col = colSum[i]/totalData; // (sum of each column)/(total N) 
 			h_col += -p_col*Math.log(p_col);
-			//System.out.println("total: "+ totalData + " col: " +colSum[i] + " h_col: " + h_col);
 		}
 		
 		// calculate the mutual information for row and column
@@ -225,76 +251,114 @@ public class KMeans {
 				}else{
 					i_row_col += p_cell*Math.log(p_cell/(rowSum[row]*colSum[col]/(Math.pow(totalData, 2))));
 				}
-				//System.out.println(p_cell + " " +i_row_col);
 			}
-
 		}
-		
 		nmi = (2*i_row_col)/(h_row + h_col);
 		return nmi;
 	}
 	
+	/**
+	 * getter for k value
+	 * @return k value
+	 */
 	public int getK() {
 		return k;
 	}
 
+	/**
+	 * setter for k
+	 * @param k
+	 */
 	public void setK(int k) {
 		this.k = k;
 	}
 
+	/**
+	 * getter for clusters
+	 * @return clusters
+	 */
 	public List<Cluster> getClusters() {
 		return clusters;
 	}
 
+	/**
+	 * setter for clusters
+	 * @param clusters
+	 */
 	public void setClusters(List<Cluster> clusters) {
 		this.clusters = clusters;
 	}
 
+	/**
+	 * getter for convergent
+	 * @return true or false
+	 */
 	public boolean isConvergent() {
 		return isConvergent;
 	}
 
+	/**
+	 * setter for convergent
+	 * @param isConvergent
+	 */
 	public void setConvergent(boolean isConvergent) {
 		this.isConvergent = isConvergent;
 	}
-
+	
+	/**
+	 * getter for numClasses
+	 * @return number of classes
+	 */
 	public int getNumClasses() {
 		return numClasses;
 	}
 
+	/**
+	 * setter for number of clusters
+	 * @param numClasses
+	 */
 	public void setNumClasses(int numClasses) {
 		this.numClasses = numClasses;
 	}
 
 	public static void main(String[] args) throws IOException {
-		KMeans k1 = new KMeans(3);
-		List<Point> dataPoints = k1.readDataFile("data/iris.arff");
-		for(int i = 0; i < 10; i++){
-			k1.initClusters(dataPoints);
-			k1.assignPointsToClusters(dataPoints);
-			k1.updateToConvergence(dataPoints);
-			double cs = k1.calCS(); 
-			//System.out.println("*******************");
-			System.out.println("CS: " + cs);
-			int[][] table = k1.setUpContingencyTable(dataPoints);
-			double nmi = k1.calNMI(table);
-			System.out.println("NMI: " + nmi);
-		}
-		System.out.println("------------- knee criterion -------------");
-		for(int k = 1; k < 16; k++){
-			double minCS = Double.MAX_VALUE;
-			for(int j = 0; j < 10; j++){
-				KMeans kmeans = new KMeans(k);
-				List<Point> data = kmeans.readDataFile("data/iris.arff");
-				kmeans.initClusters(data);
-				kmeans.assignPointsToClusters(data);
-				kmeans.updateToConvergence(data);
-				double cs = kmeans.calCS();
-				if(cs < minCS){
-					minCS = cs;
-				}
+		String [] filenames = new String [] {"artdata.arff", "ionosphere.arff", "iris.arff", "seeds.arff"};
+		for(String filename : filenames){
+			System.out.println("********** Results for dataset: " + filename + " **********");
+			System.out.println("Part 3.2 with k = number of classes in the dataset");
+			int k_value = 0;
+			if(filename == "ionosphere.arff"){ // if dataset is ionosphere, set k_value to 2
+				k_value = 2;
+			}else{
+				k_value = 3;
 			}
-			System.out.println("CS: " + minCS);
+			KMeans k1 = new KMeans(k_value); // construct k1 instance
+			List<Point> dataPoints = k1.readDataFile("data/"+filename); //get data points
+			for(int i = 0; i < 10; i++){// repeat 10 runs
+				k1.initClusters(dataPoints);
+				k1.assignPointsToClusters(dataPoints);
+				k1.updateToConvergence(dataPoints);
+				double cs = k1.calCS();
+				int[][] table = k1.setUpContingencyTable(dataPoints);
+				double nmi = k1.calNMI(table);
+				System.out.println("Round: "+ i + " CS: " + cs +  " NMI: " + nmi);
+			}
+			System.out.println("------------- Part3.3 knee criterion -------------");
+			for(int k = 1; k < 16; k++){// k value from 1 to 15
+				double minCS = Double.MAX_VALUE; // minimal cluster scatter for current k
+				for(int j = 0; j < 10; j++){ // repeat 10 runs
+					KMeans k2 = new KMeans(k); // construct instance k2
+					List<Point> data = k2.readDataFile("data/"+filename);
+					k2.initClusters(data);
+					k2.assignPointsToClusters(data);
+					k2.updateToConvergence(data);
+					double cs = k2.calCS();
+					if(cs < minCS){ // update min cluster scatter
+						minCS = cs;
+					}
+				}
+				System.out.println("k:" + k + " CS: " + minCS);
+			}
 		}
 
 	}
