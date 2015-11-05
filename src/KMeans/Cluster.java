@@ -11,7 +11,7 @@ public class Cluster {
 		this.points = new ArrayList<Point>();
 		this.center = center;
 	}
-
+	
 	public void updateCenter(List<Point> points){
 		List<Double> newCenterData = points.get(0).getData();
 		int totalNumPoints = points.size();
